@@ -32,7 +32,7 @@ Basic Workflow
 8. update with clchab/hab_arduino
   - github: make a pull request
   - github client: see cli or github
-  - cli `git pull upstream master`
+  - cli: `git pull upstream master`
 
 9. push to github
   - github: ignore

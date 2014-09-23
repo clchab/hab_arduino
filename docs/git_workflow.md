@@ -22,7 +22,7 @@ Basic Workflow
 5. commit:  Please make good descriptive comments
   - github: should be automatic
   - github client: make a commit
-  - cli: `git commit -m "<descriptive comment>"
+  - cli: `git commit -m "<descriptive comment>"`
 
 7. Merge branch with master on fork: skip if no branches were made
   - github: under pull requets
@@ -51,5 +51,5 @@ Basic Workflow
 
 ## Git Documentation and tutorials:
 
-http://git-scm.com/documentation
-https://www.atlassian.com/git/tutorials/setting-up-a-repository
+  - http://git-scm.com/documentation
+  - https://www.atlassian.com/git/tutorials/setting-up-a-repository

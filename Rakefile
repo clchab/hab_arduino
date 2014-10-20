@@ -1,3 +1,6 @@
+desc "Build and upload to arduino"
+task :release do
+  sh "ino build && ino upload"
 namespace :serial do
   desc "echo from serail"
   task :cat do
@@ -11,7 +14,7 @@ namespace :serial do
     when 'x86_64-linux'
       sh "cat /dev/ttyACM0 > logs/log-#{log_number}"
     else
-      puts "FIXME: OS not implemented"
+      puts "FIXME: your OS not implemented"
     end
   end
 end
@@ -26,7 +29,7 @@ then
 fi
 EOF
 
-  sh "ctags src/* lib/* $(find /usr/ -name Arduino.h 2>/dev/null | grep arduino/Arduino.h)"
+  sh "ctags src/* $(find /usr/ -name Arduino.h 2>/dev/null | grep arduino/Arduino.h)"
 end
 
 desc "cleans up flies"

@@ -16,13 +16,8 @@
 #include "TinyGPS.h"               // GPS Library
 #include <SoftwareSerial.h>
 
-//Define Digital LED Pins
-#define redLEDpin 3
-#define greenLEDpin 4
+#include "config.h"
 
-// Initalize Variables
-
-#define LOGTIME 1000 // In miliseconds
 
 float Latitude;
 float Longitude;
@@ -38,6 +33,8 @@ File datalog;
 char filename[] = "LOGGER00.csv";
 RTC_DS1307 RTC;
 
+byte incomingAudio;
+
 // Initalize GPS
 
   TinyGPS gps;
@@ -47,11 +44,34 @@ RTC_DS1307 RTC;
 static bool feedgps(void);
 
 void setup () {
-    Serial.begin(115200);
-    ss.begin(9600);  // Opens the communication between Arduino and GPS
+  cli();//disable interrupts
 
-    Wire.begin();         // Begins RTC communication
-    RTC.begin();
+  //set up continuous sampling of analog pin 0
+
+  //clear ADCSRA and ADCSRB registers
+  ADCSRA = 0;
+  ADCSRB = 0;
+
+  ADMUX |= (1 << REFS0); //set reference voltage
+  ADMUX |= (1 << ADLAR); //left align the ADC value- so we can read highest 8 bits from ADCH register only
+
+  ADCSRA |= (1 << ADPS2) | (1 << ADPS0); //set ADC clock with 32 prescaler- 16mHz/32=500kHz
+  ADCSRA |= (1 << ADATE); //enabble auto trigger
+  ADCSRA |= (1 << ADIE); //enable interrupts when measurement complete
+  ADCSRA |= (1 << ADEN); //enable ADC
+  ADCSRA |= (1 << ADSC); //start ADC measurements
+
+  sei();//enable interrupts
+
+  Serial.begin(115200);
+  ss.begin(9600);  // Opens the communication between Arduino and GPS
+
+  pinMode(greenLEDpin, OUTPUT);
+  pinMode(yellowLEDpin, OUTPUT);
+  pinMode(redLEDpin, OUTPUT);
+
+  Wire.begin();         // Begins RTC communication
+  RTC.begin();
 
 // Check if RTC is running, if not fix it
 
@@ -60,7 +80,6 @@ void setup () {
     // following line sets the RTC to the date & time this sketch was compiled
     RTC.adjust(DateTime(__DATE__, __TIME__));
   }
-
 // Initalize SD Card
 
   Serial.print("Intializing SD Card...");
@@ -69,6 +88,7 @@ void setup () {
   if(!SD.begin(chipSelect))
   {
     Serial.println("Card failed, or not present");
+    digitalWrite(redLEDpin, HIGH);
     return;
   }
   Serial.println("Card initialized.");
@@ -94,11 +114,10 @@ void setup () {
   Serial.print("Logging to: ");
   Serial.println(filename);
 
-  if(!datalog)
-  {
-  Serial.println("Couldn't Create File");
-
-  return;
+  if(!datalog) {
+    Serial.println("Couldn't Create File");
+    digitalWrite(redLEDpin, HIGH);
+    return;
   }
 
 // Print Header
@@ -111,24 +130,31 @@ void setup () {
   datalog.close();
 
   pinMode(greenLEDpin, OUTPUT);
+  pinMode(redLEDpin, OUTPUT);
+}
+
+ISR(ADC_vect) {//when new ADC value ready
+  incomingAudio = ADCH;//store 8 bit value from analog pin 0
 }
 
 void loop () {
 
- delay(500);
- digitalWrite(greenLEDpin, LOW);
+  delay(500);
+  digitalWrite(greenLEDpin, HIGH);
 
- bool newdata = false;
- unsigned long start = millis();
+  bool newdata = false;
+  unsigned long start = millis();
 
- while((millis() - start) < (LOGTIME))
- {
+  while((millis() - start) < (LOGTIME))
+  {
     if (feedgps())
     newdata = true;
- }
+  }
 
- datalog = SD.open(filename, FILE_WRITE);
+  datalog = SD.open(filename, FILE_WRITE);
+  if (!datalog) digitalWrite(redLEDpin, HIGH);
 
+  datalog.println(millis());
  // Real Time Clock
 
   DateTime now = RTC.now();
@@ -158,7 +184,6 @@ void loop () {
   Serial.print(":");
   Serial.print(now.second(), DEC);
   Serial.print(", ");
-
 // GPS
 
   gps.f_get_position(&Latitude, &Longitude, &FixAge);
@@ -180,6 +205,7 @@ void loop () {
   //datalog.print(",");
   //datalog.print(velocity,3); // in m/s
   //datalog.print(",");
+  datalog.flush();
 
   Serial.print(Latitude,5);
   Serial.print(", ");
@@ -196,12 +222,26 @@ void loop () {
 
   // New line for new datapoints
 
+  // start audio data collection
+  unsigned long startAudio = millis();
+  byte audio;
+  while((millis() - startAudio) < (AUDIO_SESSION_LENGTH)) {
+    digitalWrite(yellowLEDpin, HIGH);
+    audio = incomingAudio;
+    Serial.println(millis());
+    datalog.println(audio);
+    datalog.flush();
+    digitalWrite(yellowLEDpin, LOW);
+    delay(SAMPLE_RATE - (millis() % SAMPLE_RATE));
+  }
+
   datalog.println();
+  datalog.println(millis());
   Serial.println();
   datalog.close();
 
-  digitalWrite(greenLEDpin, HIGH);  //Flashes LED to let us know that it is running
-  delay(500);
+  digitalWrite(greenLEDpin, LOW);  //Flashes LED to let us know that it is running
+  delay(60000);
 
 
 }

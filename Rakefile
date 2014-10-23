@@ -1,10 +1,12 @@
 desc "Build and upload to arduino"
 task :release do
   sh "ino build && ino upload"
+end
+
 namespace :serial do
   desc "echo from serail"
   task :cat do
-    sh "cat /dev/ttyACM0"
+    sh "ino serial -b 115200"
   end
 
   desc "log serial tty"
@@ -29,7 +31,16 @@ then
 fi
 EOF
 
-  sh "ctags src/* $(find /usr/ -name Arduino.h 2>/dev/null | grep arduino/Arduino.h)"
+  sh "ctags src/* lib/SdFat/* $(find /usr/ -name Arduino.h 2>/dev/null | grep arduino/Arduino.h)"
+end
+
+namespace :vendor do
+  desc "Builds Utilities"
+  task :build do
+    sh "rm -f bin/bintocsv"
+    sh "cc vendor/bintocsv.cpp -o bin/bintocsv -O2"
+  end
+
 end
 
 desc "cleans up flies"

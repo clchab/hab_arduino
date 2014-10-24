@@ -25,3 +25,8 @@ CLC HAB Project
 |11|datalogging||
 |12|datalogging||
 |13|datalogging||
+
+## TODO
+
+add gps and rts stamps in a metadata log
+

@@ -1,4 +1,17 @@
-desc "Build and upload to arduino"
+task :default => [:build, 'vendor:build'] do
+end
+
+desc "Builds project"
+task :build do
+  sh "ino clean && ino build"
+end
+
+desc "Uploads built code to the Arduino"
+task :upload do
+  sh "ino upload"
+end
+
+desc "Builds and upload to arduino"
 task :release do
   sh "ino build && ino upload"
 end
@@ -35,10 +48,10 @@ EOF
 end
 
 namespace :vendor do
-  desc "Builds Utilities"
+  desc "Builds Utilities - windows only at the moment :("
   task :build do
-    sh "rm -f bin/bintocsv"
-    sh "cc vendor/bintocsv.cpp -o bin/bintocsv -O2"
+   # sh "rm -f bin/bintocsv"
+   # sh "cc vendor/bintocsv.cpp -o bin/bintocsv -O2"
   end
 
 end

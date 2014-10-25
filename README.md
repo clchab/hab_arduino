@@ -16,11 +16,11 @@ CLC HAB Project
 |2|yellowLEDpin||
 |3|redLEDpin||
 |4|greeLEDpin||
-|5|txGPS||
-|6|rxGPS||
+|5|unused||
+|6|unused||
 |7|unused||
-|8|unused|
-|9|unused||
+|8|txGPS|
+|9|rxGPS||
 |10|cs||
 |11|datalogging||
 |12|datalogging||

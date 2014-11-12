@@ -1,6 +1,10 @@
 CLC HAB Project
 ===============
 
+CLC High Altitude Balloon project
+
+code based off of https://github.com/greiman/SdFat/tree/master/SdFat/examples/AnalogBinLogger
+
 # Pin Usage
 
 |Pin|item|module|
